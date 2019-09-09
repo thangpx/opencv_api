@@ -3,10 +3,12 @@
 
 SRC_FILES += src/math/cv_math.c \
 			 src/meanShift/cv_meanshift.c \
+			 src/filters/cv_filter.c \
 			 src/3rdParties/OpenCVShow.cpp
 
 INCLUDE_PATH += -Isrc/math \
 				-Isrc/meanShift \
+				-Isrc/filters \
 				-Isrc/ \
 				-Isrc/3rdParties \
 				-I/usr/local/Cellar/opencv/4.1.0_2/include/opencv4/

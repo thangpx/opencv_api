@@ -8,6 +8,8 @@
 #include "OpenCVShow.h"
 
 #include "cv_math.h"
+#include "cv_meanshift.h"
+#include "cv_filter.h"
 
 void openCVShowRGBImage(COpenCVShow openCVTEST, cv_image8U_t* image, string windowName) {
     uint8_t *imgCV;
@@ -36,7 +38,7 @@ int main(int argc, char const *argv[])
     cv_size_int_t size;
     int nChannel;
 
-    uint8_t* img = stbi_load("test_images/portrait_01.jpg",&size.width,&size.height,&nChannel,3);
+    uint8_t* img = stbi_load("test_images/girl_01.jpg",&size.width,&size.height,&nChannel,3);
 
     printf("(w,h,c) = (%d,%d,%d)\n", size.width, size.height, nChannel);
 
@@ -49,6 +51,26 @@ int main(int argc, char const *argv[])
     img32F.data = NULL;
     cv_cvtImage8Uto32F(&img8U, &img32F);
 
+    // for meanShift filter testing
+    cv_image32F_t filed_img;
+    filed_img.data = NULL;
+    cv_meanShift_filter(&img32F, &img32F, 5,30,100,20,5);
+
+    printf("finish...\n");
+
+    cv_image8U_t filImg_8U;
+    filImg_8U.data = NULL;
+    cv_cvtImage32Fto8U(&img32F,&filImg_8U);
+    
+    openCVShowRGBImage(openCVTEST,&filImg_8U,"filed Image");
+
+    // free data
+    FREE_IMAGE_T(filed_img);
+    FREE_IMAGE_T(filImg_8U);
+    FREE_IMAGE_T(img8U);
+    FREE_IMAGE_T(img32F);
+
+/*  // For mean-shift testing
     cv_image32F_t imgHSV_32F;
     imgHSV_32F.data = NULL;
     cv_cvtImageRGBtoHSV(&img32F, &imgHSV_32F);
@@ -56,8 +78,8 @@ int main(int argc, char const *argv[])
     cv_array2D_8U_t mask;
     mask.data = NULL;
 
-    float lRange[3] = {230,0.5,0.5};
-    float uRange[3] = {250,1,1};
+    float lRange[3] = {0,0.5,0.5};
+    float uRange[3] = {10,1,1};
 
     cv_array32F_t lowerb, upperb;
     lowerb.len = 3;
@@ -66,9 +88,9 @@ int main(int argc, char const *argv[])
     upperb.data = uRange;
 
     cv_imageMaskInRange(&imgHSV_32F,lowerb,upperb, &mask, false);
-    // lRange[0] = 350;
-    // uRange[0] = 360;
-    // cv_imageMaskInRange(&imgHSV_32F,lowerb,upperb, &mask, true);
+    lRange[0] = 350;
+    uRange[0] = 360;
+    cv_imageMaskInRange(&imgHSV_32F,lowerb,upperb, &mask, true);
 
     cv_array32F_t hist;
     hist.data = NULL;
@@ -83,23 +105,56 @@ int main(int argc, char const *argv[])
     cv_createProbabilityImage(&imgHSV_32F, &probImage, &mask, &hist, 1, 0);
 
     cv_array2D_32F_t probArr;
+    cv_window_2d_t window = {
+        .pos = {
+            .x = 65,
+            .y = 73
+        },
+        .size = {
+            .width = 91,
+            .height = 91
+        }
+    };
     probArr.size = probImage.size;
     probArr.data = probImage.data;
-    float m00 = cv_moments(&probArr,0,0);
-    float m10 = cv_moments(&probArr,1,0);
-    float m01 = cv_moments(&probArr,0,1);
-    float m11 = cv_moments(&probArr,1,1);
-    float m20 = cv_moments(&probArr,2,0);
-    float m02 = cv_moments(&probArr,0,2);
+
+    float bw = (float)(window.size.width / 2);
+
+    float m00 = cv_moments_window(probArr,window,0,0,bw);
+    float m10 = cv_moments_window(probArr,window,1,0,bw);
+    float m01 = cv_moments_window(probArr,window,0,1,bw);
+    float m11 = cv_moments_window(probArr,window,1,1,bw);
+    float m20 = cv_moments_window(probArr,window,2,0,bw);
+    float m02 = cv_moments_window(probArr,window,0,2,bw);
+
     float xc = m10/m00;
     float yc = m01/m00;
     float a = (m20/m00) - xc*xc;
-    float b = 2*(m11/m00 - xc*yc);
+    float b = 2*((m11/m00) - xc*yc);
     float c = m02/m00 - yc*yc;
     float l = sqrt((a + c + sqrt(b*b + (a-c)*(a-c)))/2);
     float w = sqrt((a + c - sqrt(b*b + (a-c)*(a-c)))/2);
+    float orient = 0.5*atan2f(b,a-c);
     printf("(x,y) = (%lf,%lf)\n",xc,yc);
     printf("(l,w) = (%lf,%lf)\n",l,w);
+    printf("orient : %lf\n",orient);
+
+    // check meanshift
+    cv_array2D_32F_t kernel;
+    kernel.data = NULL;
+    float totalKernel = cv_createKernel_Epanechnikov(&kernel, 91, 91, 0.5);
+    cv_point_t pos = {
+        .x = 70,
+        .y = 90
+    };
+    cv_point32F_t mx;
+    
+    cv_meanShift_trace(kernel,probArr, &pos, 0.1, 50);
+    printf("m00 = %lf\nNew Pos : (x,y) = (%d,%d).\n",m00,pos.x,pos.y);
+    // cv_meanShift(kernel,probArr,pos,&mx);
+
+    // printf("totalKernel : %lf \nmeanshift = (%lf,%lf)\n", totalKernel, mx.x,mx.y);
+
 
     cv_image8U_t probImage8U;
     probImage8U.data = NULL;
@@ -120,9 +175,10 @@ int main(int argc, char const *argv[])
     openCVShowGrayImage(openCVTEST,&probImage8U,"probability image");
     openCVShowRGBImage(openCVTEST,&img8U,"original Image");
     // openCVShowRGBImage(openCVTEST,&wImg8U,"window sample Image");
-    waitKey(0);
-    free(img32F.data);
-    free(imgHSV_32F.data);
+    FREE_IMAGE_T(img32F);
+    FREE_IMAGE_T(imgHSV_32F);
     free(hist.data);
+    */
+    waitKey(0);
     return 0;
 }

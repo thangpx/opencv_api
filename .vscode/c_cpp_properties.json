@@ -8,6 +8,7 @@
                 "${workspaceFolder}/src/math/",
                 "${workspaceFolder}/src/meanShift/",
                 "${workspaceFolder}/src/3rdParties/",
+                "${workspaceFolder}/src/filters/",
                 "/usr/local/Cellar/opencv/4.1.0_2/include/opencv4"
             ],
             "defines": [],

@@ -17,6 +17,12 @@ typedef struct
 
 typedef struct
 {
+    float x;
+    float y;
+} cv_point32F_t;
+
+typedef struct
+{
     double width;
     double height;
 } cv_size_double_t;
@@ -33,13 +39,12 @@ typedef struct
     cv_size_int_t size;
 } cv_window_2d_t;
 
+// 1D array
 typedef struct
 {
     int len;
     float* data;
 } cv_array32F_t;
-
-#define INIT_CV_ARRAY32F_T(X) cv_array32F_t X = {.len = 0, .data = NULL}
 
 typedef struct
 {
@@ -47,6 +52,9 @@ typedef struct
     int* data;
 } cv_arrayInt_t;
 
+#define FREE_ARRAY_1D_T(X) {free(X.data); X.data = NULL; X.len = 0;}
+
+// 2D array
 typedef struct
 {
     cv_size_int_t size;
@@ -59,8 +67,9 @@ typedef struct
     float* data;
 } cv_array2D_32F_t;
 
-#define INIT_CV_ARRAY2D_8U_T(X) cv_array2D_8U_t X = {.size = {.width = 0, .height = 0}, .data = NULL}
+#define FREE_ARRAY_2D_T(X) {free(X.data); X.data = NULL; X.size.width = 0; X.size.height = 0;}
 
+// for presentation of images
 typedef struct
 {
     float r;
@@ -75,6 +84,7 @@ typedef struct
     float v;
 } cv_hsv_t;
 
+// Image types
 typedef struct
 {
     cv_size_int_t   size;
@@ -95,6 +105,8 @@ typedef struct
     int         nChannel;
     float*      data;
 } cv_image32F_t;
+
+#define FREE_IMAGE_T(X) {free(X.data); X.data = NULL; X.size.width = 0; X.size.height = 0; X.nChannel = 0;}
 
 #ifdef __cplusplus
 }

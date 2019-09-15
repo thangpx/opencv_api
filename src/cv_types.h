@@ -84,7 +84,26 @@ typedef struct
     float v;
 } cv_hsv_t;
 
+typedef struct
+{
+    float l;
+    float a;
+    float b;
+} cv_lab_t;
+
+typedef struct
+{
+    float x;
+    float y;
+    float z;
+} cv_xyz_t;
+
 // Image types
+typedef enum cv_imageFormat_t
+{
+    CV_RGB, CV_HSV, CV_XYZ, CV_GREY, CV_LAB
+} cv_imageFormat_t;
+
 typedef struct
 {
     cv_size_int_t   size;

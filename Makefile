@@ -2,6 +2,8 @@
 # OPENCV_SRC = /usr/local/Cellar/opencv/4.1.0_2/include/opencv4
 
 SRC_FILES += src/math/cv_math.c \
+			 src/math/cv_math_color.c \
+			 src/math/cv_math_img.c \
 			 src/meanShift/cv_meanshift.c \
 			 src/filters/cv_filter.c \
 			 src/3rdParties/OpenCVShow.cpp

@@ -133,7 +133,7 @@ int cv_meanShift_trace(cv_array2D_32F_t kernel, cv_array2D_32F_t arr2D, cv_point
 }
 
 int cv_meanShift_filter(cv_image32F_t *image, cv_image32F_t *img_out, float hs, float hr, float EPS_color, float EPS_spatial, int maxIte) {
-    
+
     if(image->data == NULL) {
         printf("cv_meanShift_filter : Error - There is no input image.\n");
         return 1;
@@ -159,10 +159,6 @@ int cv_meanShift_filter(cv_image32F_t *image, cv_image32F_t *img_out, float hs, 
     const float EPS_sqr = hr*hr;
     const float EPS_color_sqr = EPS_color*EPS_color;
     const float EPS_spatial_sqr = EPS_spatial*EPS_spatial;
-
-    // img_out->size = image->size;
-    // img_out->nChannel = image->nChannel;
-    // img_out->data = (float*)malloc(sizeof(float)*W*H*C);
 
     float *currPt = (float*)calloc(C + 2,sizeof(float));
     float *prevPt = (float*)calloc(C + 2,sizeof(float));

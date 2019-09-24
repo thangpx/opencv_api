@@ -1,5 +1,5 @@
 # opencv_api
-The main contents of opencv_api focus on the functions which are able to use in computer vision by using C programming language. Until now, this api is providing following functions:
+The main contents of opencv_api focus on the functions which help for the programmers are able to use separate function in their program by using C programming language. Until now, this api is providing following functions:
 * Color spaces converters: 
 * * RGB to HSV
 * * RGB to CIE-Lab

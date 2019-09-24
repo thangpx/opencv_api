@@ -6,6 +6,8 @@ The main contents of opencv_api focus on the functions which help for the progra
 * * RGB to CIE-xyz
 * * RGB to Grey
 * * and vice versa.
+* Filters:
+* * Mean-shift filter
 * Image moment
 * Mean-shift algorithm:
 * * Kernels: Gaussian, Epanechnikov

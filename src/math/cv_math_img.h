@@ -19,8 +19,8 @@ int cv_createProbabilityImage(cv_image32F_t *hsvImage, cv_image32F_t *probImage,
 
 int cv_getImageArea_32F(cv_image32F_t *img, cv_image32F_t *imgArea, cv_window_2d_t *window);
 
-int cv_imgIntegral();
-
+int cv_imgIntegral_create(cv_image32F_t imgIn, cv_image32F_t *integralImage, int channel, bool rotate);
+double cv_rectangleSum(cv_image32F_t integralImage, int x, int y, int w, int h, bool rotate);
 #ifdef __cplusplus
 }
 #endif

@@ -265,3 +265,114 @@ int cv_getImageArea_32F(cv_image32F_t *img, cv_image32F_t *imgArea, cv_window_2d
     }
     return 0;
 }
+
+int cv_imgIntegral_create(cv_image32F_t imgIn, cv_image32F_t *integralImage, int channel, bool rotate) {
+    if(imgIn.data == NULL) {
+        printf("cv_imgIntegral_create : Error - There is no input image.\n");
+        return 1;
+    }
+    if(channel >= imgIn.nChannel) {
+        printf("cv_imgIntegral_create : Error - Do not exist channel %d.\n",channel);
+        return 1;
+    }
+    if(integralImage->data != NULL) {
+        if(!COMPARE_SIZE_T(integralImage->size,imgIn.size)) {
+            free(integralImage->data);
+            integralImage->data = NULL;
+            integralImage->size = imgIn.size;
+            integralImage->nChannel = 1;
+            integralImage->data = (float*)malloc(sizeof(float)*integralImage->size.height*integralImage->size.width);
+        } else {
+            if(integralImage->nChannel != 1) {
+                free(integralImage->data);
+                integralImage->data = NULL;
+                integralImage->size = imgIn.size;
+                integralImage->nChannel = 1;
+                integralImage->data = (float*)malloc(sizeof(float)*integralImage->size.height*integralImage->size.width);
+            }
+        }
+    } else {
+        integralImage->size = imgIn.size;
+        integralImage->nChannel = 1;
+        integralImage->data = (float*)malloc(sizeof(float)*integralImage->size.height*integralImage->size.width);
+    }
+    // Integrate
+    if(rotate) {
+        // first pass
+        for(int y = 0; y < imgIn.size.height; y++) {
+            const int py = y*integralImage->size.width;
+            const int pri_py = (y - 1)*integralImage->size.width;
+            for(int x = 0; x < imgIn.size.width; x++) {
+                float rsat_1 = ((x - 1) < 0 || (y - 1) < 0) ? 0.0 : integralImage->data[pri_py + (x - 1)];
+                float rsat_2 = ((x - 1) < 0) ? 0.0 : integralImage->data[py + (x - 1)];
+                float rsat_3 = ((x - 2) < 0 || (y - 1) < 0) ? 0.0 : integralImage->data[pri_py + (x - 2)];
+                integralImage->data[py + x] = rsat_1 + rsat_2 + imgIn.data[py + x] - rsat_3;
+            }
+        }
+        // second pass
+        for(int y = imgIn.size.height - 1; y >= 0; y--) {
+            const int py = y*integralImage->size.width;
+            const int nex_py = (y + 1)*integralImage->size.width;
+            for(int x = imgIn.size.width - 1; x >= 0; x--) {
+                float rsat_4 = ((y + 1) >= imgIn.size.height) ? 0.0 : integralImage->data[nex_py + x - 1];
+                float rsat_5 = ((x - 2) < 0) ? 0.0 : integralImage->data[py + x - 2];
+                integralImage->data[py + x] += rsat_4 - rsat_5;
+            }
+        }
+    } else {
+        const int rSize = imgIn.size.width * imgIn.nChannel;
+        for(int y = 0; y < imgIn.size.height; y++) {
+            const int py = y * rSize;
+            const int piy = y * integralImage->size.width;
+            const int piy_pri = (y - 1)*integralImage->size.width;
+            for(int x = 0; x < imgIn.size.width; x++) {
+                const int px = x*imgIn.nChannel;
+                const float vtop = (y == 0) ? 0.0 : integralImage->data[piy_pri + x];
+                const float vleft = (x == 0) ? 0.0 : integralImage->data[piy + x - 1];
+                const float vtopleft = ((y == 0) || (x == 0)) ? 0.0 : integralImage->data[piy_pri + x - 1];
+                integralImage->data[piy + x] = vtop + vleft - vtopleft + imgIn.data[py + px + channel];
+            }
+        }
+    }
+    
+    return 0;
+}
+
+double cv_rectangleSum(cv_image32F_t integralImage, int x, int y, int w, int h, bool rotate) {
+    double recSum = 0.0;
+    if(integralImage.data == NULL) {
+        printf("cv_rectangleSum : Error - There is no input data.\n");
+        return 0;
+    }
+    const int WD = integralImage.size.width;
+    const int HI = integralImage.size.height;
+    if(rotate) {
+        const int xpw = x + w;
+        const int ypw = y + w;
+        const int xmh = x - h;
+        const int yph = y + h;
+        const int xpwmh = xpw - h;
+        const int ypwph = ypw + h;
+        if((xpw >= WD) || (xpw < 0) || (ypw >= HI) || (ypw < 0) || 
+            (xmh >= WD) || (xmh < 0) || (yph >= HI) || (yph < 0) || 
+            (xpwmh >= WD) || (xpwmh < 0) || (ypwph >= HI) || (ypwph < 0)) {
+            printf("cv_rectangleSum : Error - The input parameters for window are not compatible.\n");
+            return 0;
+        }
+        recSum = integralImage.data[ypw*WD + xpw] + integralImage.data[yph*WD + xmh] - 
+                    integralImage.data[y*WD + x] - integralImage.data[ypwph*WD + xpwmh];
+    } else {
+        const int xm1 = x - 1;
+        const int ym1 = y - 1;
+        const int xpwm1 = xm1 + w;
+        const int yphm1 = ym1 + h;
+        if((xm1 >= WD) || (xm1 < 0) || (ym1 >= HI) || (ym1 < 0) || (xpwm1 >= WD) || (xpwm1 < 0) || (yphm1 >= HI) || (yphm1 < 0)) {
+            printf("cv_rectangleSum : Error - The input parameters for window are not compatible.\n");
+            return 0;
+        }
+        recSum = integralImage.data[ym1*WD + xm1] + integralImage.data[yphm1*WD + xpwm1] - 
+                    integralImage.data[yphm1*WD + xm1] - integralImage.data[ym1*WD + xpwm1];
+
+    }
+    return recSum;
+}

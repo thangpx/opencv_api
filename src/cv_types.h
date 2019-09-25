@@ -33,6 +33,8 @@ typedef struct
     int height;
 } cv_size_int_t;
 
+#define COMPARE_SIZE_T(X,Y) ((X.width == Y.width) && (X.height == Y.height))
+
 typedef struct
 {
     cv_point_t pos;

@@ -4,12 +4,11 @@
 SRC_FILES += src/math/cv_math.c \
 			 src/math/cv_math_color.c \
 			 src/math/cv_math_img.c \
-			 src/meanShift/cv_meanshift.c \
+			 src/math/cv_meanshift.c \
 			 src/filters/cv_filter.c \
 			 src/3rdParties/OpenCVShow.cpp
 
 INCLUDE_PATH += -Isrc/math \
-				-Isrc/meanShift \
 				-Isrc/filters \
 				-Isrc/ \
 				-Isrc/3rdParties \

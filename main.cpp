@@ -8,6 +8,7 @@
 #include "OpenCVShow.h"
 
 #include "cv_math.h"
+#include "cv_math_img.h"
 #include "cv_meanshift.h"
 #include "cv_filter.h"
 
@@ -49,7 +50,35 @@ int main(int argc, char const *argv[])
 
     cv_image32F_t img32F;
     img32F.data = NULL;
-    cv_cvtImage8Uto32F(&img8U, &img32F);
+
+    float sample[40] = {1,  2,  3,  4,  5,
+                        6,  7,  8,  9,  10,
+                        11, 12, 13, 14, 15,
+                        16, 17, 18, 19, 20,
+                        21, 22, 23, 24, 25,
+                        26, 27, 28, 29, 30,
+                        31, 32, 33, 34, 35,
+                        36, 37, 38, 39, 40};
+    cv_size_int_t sizeSample = {.width = 5, .height = 8};
+    img32F.size = sizeSample;
+    img32F.nChannel = 1;
+    img32F.data = sample;
+
+    cv_image32F_t integralImage;
+    integralImage.data = NULL;
+    cv_imgIntegral_create(img32F,&integralImage,0,true);
+
+    for(int y = 0; y < 8; y++) {
+        for(int x = 0; x < 5; x++) {
+            printf("%lf ",integralImage.data[y*5 + x]);
+        }
+        printf("\n");
+    }
+
+    double recSum = cv_rectangleSum(integralImage,2,1,2,2,true);
+    printf("recSum = %lf\n",recSum);
+
+ /*   cv_cvtImage8Uto32F(&img8U, &img32F);
 
     // for meanShift filter testing
     cv_image32F_t filed_img;
@@ -68,7 +97,7 @@ int main(int argc, char const *argv[])
     FREE_IMAGE_T(filed_img);
     FREE_IMAGE_T(filImg_8U);
     FREE_IMAGE_T(img8U);
-    FREE_IMAGE_T(img32F);
+    FREE_IMAGE_T(img32F); */
 
 /*  // For mean-shift testing
     cv_image32F_t imgHSV_32F;
@@ -179,6 +208,6 @@ int main(int argc, char const *argv[])
     FREE_IMAGE_T(imgHSV_32F);
     free(hist.data);
     */
-    waitKey(0);
+    // waitKey(0);
     return 0;
 }
